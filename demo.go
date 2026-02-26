@@ -76,4 +76,5 @@ func printBook(book *Books) {
 	fmt.Printf("Book subject : %s\n", book.subject)
 	fmt.Printf("Book book_id : %d\n", book.book_id)
 	fmt.Printf("Book time : %s\n", book.time)
+	// fmt.Printf("Book time : %s\n", book.Time.time)
 }
