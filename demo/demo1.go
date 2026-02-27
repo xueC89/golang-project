@@ -1,11 +1,11 @@
-package main
+package demo
 
 import (
 	"fmt"
 	"time"
 )
 
-func main() {
+func demo1() {
 	ch1 := make(chan int)
 	go sendData(ch1)
 	/*

@@ -1,11 +1,11 @@
-package main
+package demo
 
 import (
 	"fmt"
 	"time"
 )
 
-func main() {
+func demo2() {
 	/*
 		分支语句：if，switch，select
 		select 语句类似于 switch 语句，

@@ -1,4 +1,4 @@
-package main
+package demo
 
 import "fmt"
 
@@ -19,7 +19,7 @@ type Books struct {
 	sub_title *SubTitle
 }
 
-func main() {
+func demo() {
 	var Book1 Books /* Declare Book1 of type Book */
 	var Book2 Books /* Declare Book2 of type Book */
 
