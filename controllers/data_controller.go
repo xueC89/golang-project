@@ -1,15 +1,20 @@
 package controllers
 
 import (
-	"net/http"
 	"time"
 
+	"github.com/astaxie/beego"
+
 	"frontend-backend/models"
-	"frontend-backend/utils"
 )
 
-// GetDataHandler 获取系统信息和功能特性
-func GetDataHandler(w http.ResponseWriter, r *http.Request) {
+// DataController 数据控制器
+type DataController struct {
+	beego.Controller
+}
+
+// GetData 获取系统信息和功能特性
+func (c *DataController) GetData() {
 	// 使用系统信息模型
 	systemInfo := models.SystemInfo{
 		Message:   "欢迎使用Go后端API",
@@ -23,5 +28,11 @@ func GetDataHandler(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	utils.SuccessResponse(w, http.StatusOK, "获取系统信息成功", systemInfo)
+	c.Data["json"] = map[string]interface{}{
+		"success": true,
+		"message": "获取系统信息成功",
+		"data":    systemInfo,
+	}
+	c.Ctx.Output.SetStatus(200)
+	c.ServeJSON()
 }

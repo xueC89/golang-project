@@ -2,11 +2,16 @@ package controllers
 
 import (
 	"encoding/json"
-	"net/http"
+
+	"github.com/astaxie/beego"
 
 	"frontend-backend/models"
-	"frontend-backend/utils"
 )
+
+// UserController 用户控制器
+type UserController struct {
+	beego.Controller
+}
 
 // CreateUserRequest 创建用户请求结构
 type CreateUserRequest struct {
@@ -14,38 +19,56 @@ type CreateUserRequest struct {
 	Email string `json:"email" binding:"required,email"`
 }
 
-// GetUsersHandler 获取所有用户信息
-func GetUsersHandler(w http.ResponseWriter, r *http.Request) {
+// GetUsers 获取所有用户信息
+func (c *UserController) GetUsers() {
 	// 创建用户仓库
 	repo := models.NewUserRepository()
 
 	// 从数据库获取所有用户
 	users, err := repo.GetAllUsers()
 	if err != nil {
-		utils.ErrorResponse(w, http.StatusInternalServerError, "获取用户列表失败: "+err.Error())
+		c.Data["json"] = map[string]interface{}{
+			"success": false,
+			"error":   "获取用户列表失败: " + err.Error(),
+		}
+		c.Ctx.Output.SetStatus(500)
+		c.ServeJSON()
 		return
 	}
 
-	utils.SuccessResponse(w, http.StatusOK, "获取用户列表成功", map[string]interface{}{
-		"users": users,
-	})
+	c.Data["json"] = map[string]interface{}{
+		"success": true,
+		"message": "获取用户列表成功",
+		"data": map[string]interface{}{
+			"users": users,
+		},
+	}
+	c.Ctx.Output.SetStatus(200)
+	c.ServeJSON()
 }
 
-// CreateUserHandler 创建新用户
-func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
-	// 限制请求体大小为1MB
-	r.Body = http.MaxBytesReader(w, r.Body, 1048576)
-
+// CreateUser 创建新用户
+func (c *UserController) CreateUser() {
 	// 解析请求体
 	var req CreateUserRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.ErrorResponse(w, http.StatusBadRequest, "无效的请求数据: "+err.Error())
+	if err := json.NewDecoder(c.Ctx.Request.Body).Decode(&req); err != nil {
+		c.Data["json"] = map[string]interface{}{
+			"success": false,
+			"error":   "无效的请求数据: " + err.Error(),
+		}
+		c.Ctx.Output.SetStatus(400)
+		c.ServeJSON()
 		return
 	}
 
 	// 验证请求数据
 	if req.Name == "" || req.Email == "" {
-		utils.ErrorResponse(w, http.StatusBadRequest, "姓名和邮箱不能为空")
+		c.Data["json"] = map[string]interface{}{
+			"success": false,
+			"error":   "姓名和邮箱不能为空",
+		}
+		c.Ctx.Output.SetStatus(400)
+		c.ServeJSON()
 		return
 	}
 
@@ -55,11 +78,22 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	// 创建新用户
 	user, err := repo.CreateUser(req.Name, req.Email)
 	if err != nil {
-		utils.ErrorResponse(w, http.StatusInternalServerError, "创建用户失败: "+err.Error())
+		c.Data["json"] = map[string]interface{}{
+			"success": false,
+			"error":   "创建用户失败: " + err.Error(),
+		}
+		c.Ctx.Output.SetStatus(500)
+		c.ServeJSON()
 		return
 	}
 
-	utils.SuccessResponse(w, http.StatusCreated, "用户创建成功", map[string]interface{}{
-		"user": user,
-	})
+	c.Data["json"] = map[string]interface{}{
+		"success": true,
+		"message": "用户创建成功",
+		"data": map[string]interface{}{
+			"user": user,
+		},
+	}
+	c.Ctx.Output.SetStatus(201)
+	c.ServeJSON()
 }

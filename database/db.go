@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"os"
 	"time"
 
+	"github.com/astaxie/beego"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -17,12 +17,27 @@ var (
 
 // InitDB 初始化数据库连接
 func InitDB() error {
-	// 从环境变量获取数据库配置
-	user := getEnv("DB_USER", "root")
-	password := getEnv("DB_PASSWORD", "root")
-	host := getEnv("DB_HOST", "localhost")
-	port := getEnv("DB_PORT", "3306")
-	dbname := getEnv("DB_NAME", "frontend_backend")
+	// 从beego配置获取数据库配置
+	user := beego.AppConfig.String("dbuser")
+	if user == "" {
+		user = "root"
+	}
+	password := beego.AppConfig.String("dbpass")
+	if password == "" {
+		password = "root"
+	}
+	host := beego.AppConfig.String("dbhost")
+	if host == "" {
+		host = "localhost"
+	}
+	port := beego.AppConfig.String("dbport")
+	if port == "" {
+		port = "3306"
+	}
+	dbname := beego.AppConfig.String("dbname")
+	if dbname == "" {
+		dbname = "frontend_backend"
+	}
 
 	// 构建DSN (Data Source Name)
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
@@ -91,13 +106,4 @@ func initTables() error {
 
 	log.Println("数据库表结构初始化完成")
 	return nil
-}
-
-// getEnv 获取环境变量，如果不存在则返回默认值
-func getEnv(key, defaultValue string) string {
-	value := os.Getenv(key)
-	if value == "" {
-		return defaultValue
-	}
-	return value
 }
