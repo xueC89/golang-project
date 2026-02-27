@@ -3,7 +3,7 @@ package routes
 import (
 	"github.com/astaxie/beego"
 
-	"frontend-backend/controllers"
+	"project/controllers"
 )
 
 // RouterGroup 路由组

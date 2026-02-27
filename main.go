@@ -5,8 +5,8 @@ import (
 
 	"github.com/astaxie/beego"
 
-	"frontend-backend/database"
-	"frontend-backend/routes"
+	"project/database"
+	"project/routes"
 )
 
 func main() {

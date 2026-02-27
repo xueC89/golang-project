@@ -3,7 +3,7 @@ package models
 import (
 	"database/sql"
 
-	"frontend-backend/database"
+	"project/database"
 )
 
 // UserRepository 用户数据仓库

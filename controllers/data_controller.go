@@ -5,7 +5,7 @@ import (
 
 	"github.com/astaxie/beego"
 
-	"frontend-backend/models"
+	"project/models"
 )
 
 // DataController 数据控制器

@@ -5,7 +5,7 @@ import (
 
 	"github.com/astaxie/beego"
 
-	"frontend-backend/models"
+	"project/models"
 )
 
 // UserController 用户控制器
