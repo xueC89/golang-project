@@ -36,11 +36,11 @@ func InitDB() error {
 	}
 	dbname := beego.AppConfig.String("dbname")
 	if dbname == "" {
-		dbname = "frontend_backend"
+		dbname = "myblog"
 	}
 
 	// 构建DSN (Data Source Name)
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8",
 		user, password, host, port, dbname)
 
 	// 打开数据库连接
@@ -96,7 +96,7 @@ func initTables() error {
 		email VARCHAR(255) NOT NULL UNIQUE,
 		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 	`
 
 	_, err := DB.Exec(userTableSQL)
