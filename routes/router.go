@@ -37,7 +37,13 @@ func SetupRoutes() {
 	apiGroup := NewRouterGroup("/api")
 
 	// 用户管理路由
-	apiGroup.Register("/users", &controllers.UserController{}, "get:GetUsers;post:CreateUser")
+	// apiGroup.Register("/users", &controllers.UserController{}, "get:GetUsers")
+
+	// 用户注册
+	apiGroup.Register("/register", &controllers.UserController{}, "post:CreateUser")
+
+	// 用户登录
+	apiGroup.Register("/login", &controllers.UserController{}, "post:Login")
 
 	// 数据管理路由
 	apiGroup.Register("/data", &controllers.DataController{}, "get:GetData")

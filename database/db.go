@@ -91,19 +91,44 @@ func initTables() error {
 	// 创建用户表
 	userTableSQL := `
 	CREATE TABLE IF NOT EXISTS users (
-		id INT AUTO_INCREMENT PRIMARY KEY,
-		name VARCHAR(255) NOT NULL,
-		email VARCHAR(255) NOT NULL UNIQUE,
-		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-		updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+		id INT(4) AUTO_INCREMENT PRIMARY KEY NOT NULL,
+		username VARCHAR(64) NOT NULL,
+		password VARCHAR(64) NOT NULL,
+		status INT(4),
+		createtime TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 	`
 
-	_, err := DB.Exec(userTableSQL)
+	_, err := ModifyDB(userTableSQL)
 	if err != nil {
 		return fmt.Errorf("创建用户表失败: %v", err)
 	}
 
 	log.Println("数据库表结构初始化完成")
 	return nil
+}
+
+func ModifyDB(sql string, args ...interface{}) (int64, error) {
+	res, err := DB.Exec(sql, args...)
+	if err != nil {
+		return 0, err
+	}
+	count, err := res.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func QueryDB(sql string, args ...interface{}) (*sql.Rows, error) {
+	rows, err := DB.Query(sql, args...)
+	if err != nil {
+		return nil, err
+	}
+	return rows, nil
+}
+
+func QueryRowDB(sql string, args ...interface{}) *sql.Row {
+	row := DB.QueryRow(sql, args...)
+	return row
 }

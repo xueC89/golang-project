@@ -2,10 +2,12 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/astaxie/beego"
 
 	"frontend-backend/models"
+	"frontend-backend/utils"
 )
 
 // UserController 用户控制器
@@ -13,38 +15,18 @@ type UserController struct {
 	beego.Controller
 }
 
-// CreateUserRequest 创建用户请求结构
-type CreateUserRequest struct {
-	Name  string `json:"name" binding:"required"`
-	Email string `json:"email" binding:"required,email"`
+type UserRequest struct {
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
 }
 
-// GetUsers 获取所有用户信息
-func (c *UserController) GetUsers() {
-	// 创建用户仓库
-	repo := models.NewUserRepository()
+// CreateUserRequest 创建用户请求结构
+type CreateUserRequest struct {
+	UserRequest
+}
 
-	// 从数据库获取所有用户
-	users, err := repo.GetAllUsers()
-	if err != nil {
-		c.Data["json"] = map[string]interface{}{
-			"success": false,
-			"error":   "获取用户列表失败: " + err.Error(),
-		}
-		c.Ctx.Output.SetStatus(500)
-		c.ServeJSON()
-		return
-	}
-
-	c.Data["json"] = map[string]interface{}{
-		"success": true,
-		"message": "获取用户列表成功",
-		"data": map[string]interface{}{
-			"users": users,
-		},
-	}
-	c.Ctx.Output.SetStatus(200)
-	c.ServeJSON()
+type LoginRequest struct {
+	UserRequest
 }
 
 // CreateUser 创建新用户
@@ -53,8 +35,9 @@ func (c *UserController) CreateUser() {
 	var req CreateUserRequest
 	if err := json.NewDecoder(c.Ctx.Request.Body).Decode(&req); err != nil {
 		c.Data["json"] = map[string]interface{}{
+			"code":    0,
 			"success": false,
-			"error":   "无效的请求数据: " + err.Error(),
+			"message": "无效的请求数据: " + err.Error(),
 		}
 		c.Ctx.Output.SetStatus(400)
 		c.ServeJSON()
@@ -62,25 +45,40 @@ func (c *UserController) CreateUser() {
 	}
 
 	// 验证请求数据
-	if req.Name == "" || req.Email == "" {
+	if req.Username == "" || req.Password == "" {
 		c.Data["json"] = map[string]interface{}{
+			"code":    0,
 			"success": false,
-			"error":   "姓名和邮箱不能为空",
+			"message": "用户名和密码不能为空",
 		}
 		c.Ctx.Output.SetStatus(400)
 		c.ServeJSON()
 		return
 	}
 
-	// 创建用户仓库
-	repo := models.NewUserRepository()
+	// 验证用户名是否已存在
+	if models.QueryUserWithUsername(req.Username) != 0 {
+		c.Data["json"] = map[string]interface{}{
+			"code":    0,
+			"success": false,
+			"message": "用户名已存在",
+		}
+		c.Ctx.Output.SetStatus(400)
+		c.ServeJSON()
+		return
+	}
 
 	// 创建新用户
-	user, err := repo.CreateUser(req.Name, req.Email)
+	_, err := models.InsertUser(&models.User{
+		Username: req.Username,
+		Password: utils.MD5(req.Password),
+		Status:   1,
+	})
 	if err != nil {
 		c.Data["json"] = map[string]interface{}{
+			"code":    0,
 			"success": false,
-			"error":   "创建用户失败: " + err.Error(),
+			"message": "创建用户失败: " + err.Error(),
 		}
 		c.Ctx.Output.SetStatus(500)
 		c.ServeJSON()
@@ -88,12 +86,64 @@ func (c *UserController) CreateUser() {
 	}
 
 	c.Data["json"] = map[string]interface{}{
+		"code":    1,
 		"success": true,
 		"message": "用户创建成功",
-		"data": map[string]interface{}{
-			"user": user,
-		},
+		"data":    nil,
 	}
-	c.Ctx.Output.SetStatus(201)
+	c.Ctx.Output.SetStatus(200)
 	c.ServeJSON()
+}
+
+// Login 用户登录
+func (c *UserController) Login() {
+	// 解析请求体
+	var req LoginRequest
+	// json.NewDecoder(c.Ctx.Request.Body).Decode(&req)
+	if err := json.NewDecoder(c.Ctx.Request.Body).Decode(&req); err != nil {
+		c.Data["json"] = map[string]interface{}{
+			"code":    0,
+			"success": false,
+			"message": "无效的请求数据: " + err.Error(),
+		}
+		c.Ctx.Output.SetStatus(400)
+		c.ServeJSON()
+		return
+	}
+	fmt.Println(req.Username)
+
+	// 验证请求数据
+	if req.Username == "" || req.Password == "" {
+		c.Data["json"] = map[string]interface{}{
+			"code":    0,
+			"success": false,
+			"message": "用户名或密码不能为空",
+		}
+		c.Ctx.Output.SetStatus(400)
+		c.ServeJSON()
+		return
+	}
+
+	id := models.QueryUserWithParam(req.Username, utils.MD5(req.Password))
+	// 验证用户是否存在
+	if id == 0 {
+		c.Data["json"] = map[string]interface{}{
+			"code":    0,
+			"success": false,
+			"message": "用户名或密码错误",
+		}
+		c.Ctx.Output.SetStatus(400)
+		c.ServeJSON()
+		return
+	} else {
+		c.Data["json"] = map[string]interface{}{
+			"code":    1,
+			"success": true,
+			"message": "登录成功",
+			"data":    nil,
+		}
+		c.Ctx.Output.SetStatus(200)
+		c.ServeJSON()
+		return
+	}
 }
