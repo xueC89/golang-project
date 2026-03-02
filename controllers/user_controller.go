@@ -87,7 +87,46 @@ func (c *UserController) Login() {
 		return
 	}
 
-	c.jsonSuccess(200, "登录成功", nil)
+	// 设置Session
+	c.SetSession("user_id", id)
+	c.SetSession("username", req.Username)
+	c.SetSession("logged_in", true)
+
+	c.jsonSuccess(200, "登录成功", map[string]interface{}{
+		"user_id":  id,
+		"username": req.Username,
+	})
+}
+
+// Logout 用户登出
+func (c *UserController) Logout() {
+	// 清除Session
+	c.DelSession("user_id")
+	c.DelSession("username")
+	c.DelSession("logged_in")
+
+	c.jsonSuccess(200, "登出成功", nil)
+}
+
+// GetUserInfo 获取用户信息
+func (c *UserController) GetUserInfo() {
+	// 检查Session
+	userID, ok := c.GetSession("user_id").(int)
+	if !ok {
+		c.jsonError(401, "未登录")
+		return
+	}
+
+	username, ok := c.GetSession("username").(string)
+	if !ok {
+		c.jsonError(401, "未登录")
+		return
+	}
+
+	c.jsonSuccess(200, "获取用户信息成功", map[string]interface{}{
+		"user_id":  userID,
+		"username": username,
+	})
 }
 
 // jsonError 返回错误JSON响应

@@ -39,8 +39,8 @@ func InitDB() error {
 		dbname = "myblog"
 	}
 
-	// 构建DSN (Data Source Name)
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8",
+	// 构建DSN (Data Source Name)，使用utf8mb4字符集
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		user, password, host, port, dbname)
 
 	// 打开数据库连接
@@ -89,25 +89,52 @@ func CloseDB() error {
 // initTables 初始化数据库表结构
 func initTables() error {
 	// 创建用户表
-	userTableSQL := `
-	CREATE TABLE IF NOT EXISTS users (
-		id INT(4) AUTO_INCREMENT PRIMARY KEY NOT NULL,
-		username VARCHAR(64) NOT NULL,
-		password VARCHAR(64) NOT NULL,
-		status INT(4),
-		createtime TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-	) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-	`
-
-	_, err := ModifyDB(userTableSQL)
-	if err != nil {
+	if err := CreateTableWithUsers(); err != nil {
 		return fmt.Errorf("创建用户表失败: %v", err)
+	}
+
+	// 创建文章表
+	if err := CreateTableWithArticle(); err != nil {
+		return fmt.Errorf("创建文章表失败: %v", err)
 	}
 
 	log.Println("数据库表结构初始化完成")
 	return nil
 }
 
+// CreateTableWithUsers 创建用户表
+func CreateTableWithUsers() error {
+	sql := `
+	CREATE TABLE IF NOT EXISTS users (
+		id INT(4) AUTO_INCREMENT PRIMARY KEY NOT NULL,
+		username VARCHAR(64) NOT NULL,
+		password VARCHAR(64) NOT NULL,
+		status INT(4),
+		createtime TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+	`
+	_, err := ModifyDB(sql)
+	return err
+}
+
+// CreateTableWithArticle 创建文章表
+func CreateTableWithArticle() error {
+	sql := `
+	CREATE TABLE IF NOT EXISTS article (
+		id INT(4) AUTO_INCREMENT PRIMARY KEY NOT NULL,
+		title VARCHAR(128) NOT NULL,
+		author VARCHAR(40) NOT NULL,
+		tags VARCHAR(100),
+		short VARCHAR(500),
+		content LONGTEXT NOT NULL,
+		createtime TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+	`
+	_, err := ModifyDB(sql)
+	return err
+}
+
+// ModifyDB 执行SQL语句
 func ModifyDB(sql string, args ...interface{}) (int64, error) {
 	res, err := DB.Exec(sql, args...)
 	if err != nil {
@@ -120,6 +147,7 @@ func ModifyDB(sql string, args ...interface{}) (int64, error) {
 	return count, nil
 }
 
+// QueryDB 查询数据库
 func QueryDB(sql string, args ...interface{}) (*sql.Rows, error) {
 	rows, err := DB.Query(sql, args...)
 	if err != nil {
@@ -128,6 +156,7 @@ func QueryDB(sql string, args ...interface{}) (*sql.Rows, error) {
 	return rows, nil
 }
 
+// QueryRowDB 查询单行数据
 func QueryRowDB(sql string, args ...interface{}) *sql.Row {
 	row := DB.QueryRow(sql, args...)
 	return row

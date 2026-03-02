@@ -30,9 +30,6 @@ func (g *RouterGroup) Register(path string, controller interface{}, methods stri
 
 // SetupRoutes 设置所有路由
 func SetupRoutes() {
-	// 健康检查路由
-	beego.Router("/health", &controllers.HealthController{}, "get:Get")
-
 	// API路由组
 	apiGroup := NewRouterGroup("/api")
 
@@ -45,8 +42,17 @@ func SetupRoutes() {
 	// 用户登录
 	apiGroup.Register("/login", &controllers.UserController{}, "post:Login")
 
-	// 数据管理路由
-	apiGroup.Register("/data", &controllers.DataController{}, "get:GetData")
+	// 用户登出
+	apiGroup.Register("/logout", &controllers.UserController{}, "post:Logout")
+
+	// 获取用户信息
+	apiGroup.Register("/user/info", &controllers.UserController{}, "get:GetUserInfo")
+
+	// 文章管理路由
+	apiGroup.Register("/article/add", &controllers.ArticleController{}, "post:CreateArticle")
+
+	// 获取文章列表
+	apiGroup.Register("/article/list", &controllers.ArticleController{}, "get:GetArticleList")
 
 	// 预留其他路由组
 	// adminGroup := NewRouterGroup("/admin")
