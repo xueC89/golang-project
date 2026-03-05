@@ -58,3 +58,29 @@ func QueryArticleWithPage(page, size int) ([]Article, error) {
 	sql := fmt.Sprintf("LIMIT %d, %d", (page-1)*size, size)
 	return QueryArticleWithCon(sql)
 }
+
+func QueryArticleWithId(id string) (Article, error) {
+	sql := fmt.Sprintf("WHERE id = %s", id)
+	articles, err := QueryArticleWithCon(sql)
+	if err != nil {
+		return Article{}, err
+	}
+	if len(articles) == 0 {
+		return Article{}, fmt.Errorf("article with id %s not found", id)
+	}
+	return articles[0], nil
+}
+
+func UpdateArticle(id string, article Article) (int64, error) {
+	sql := `
+		UPDATE article
+		SET title = ?, tags = ?, short = ?, content = ?, author = ?
+		WHERE id = ?
+	`
+	return database.ModifyDB(sql, article.Title, article.Tags, article.Short, article.Content, article.Author, id)
+}
+
+func DeleteArticle(id string) (int64, error) {
+	sql := fmt.Sprintf("DELETE FROM article WHERE id = %s", id)
+	return database.ModifyDB(sql)
+}

@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"frontend-backend/models"
+	"strconv"
 
 	"github.com/astaxie/beego"
 )
@@ -49,6 +50,41 @@ func (c *ArticleController) GetArticleList() {
 	var articleList []models.Article
 	articleList, _ = models.QueryArticleWithPage(req.Page, req.Size)
 	c.jsonSuccess(200, "文章列表查询成功", articleList)
+}
+
+func (c *ArticleController) GetArticleDetail() {
+	idStr := c.Ctx.Input.Param(":id")
+	id, _ := strconv.Atoi(idStr)
+	var article models.Article
+	article, _ = models.QueryArticleWithId(strconv.Itoa(id))
+	c.jsonSuccess(200, "文章详情查询成功", article)
+}
+
+func (c *ArticleController) UpdateArticle() {
+	idStr := c.Ctx.Input.Param(":id")
+	id, _ := strconv.Atoi(idStr)
+	var req models.Article
+	if err := json.NewDecoder(c.Ctx.Request.Body).Decode(&req); err != nil {
+		c.jsonError(400, "无效的请求数据: "+err.Error())
+		return
+	}
+	_, err := models.UpdateArticle(strconv.Itoa(id), req)
+	if err != nil {
+		c.jsonError(500, "更新文章失败: "+err.Error())
+		return
+	}
+	c.jsonSuccess(200, "文章更新成功", nil)
+}
+
+func (c *ArticleController) DeleteArticle() {
+	idStr := c.Ctx.Input.Param(":id")
+	id, _ := strconv.Atoi(idStr)
+	_, err := models.DeleteArticle(strconv.Itoa(id))
+	if err != nil {
+		c.jsonError(500, "删除文章失败: "+err.Error())
+		return
+	}
+	c.jsonSuccess(200, "文章删除成功", nil)
 }
 
 func (c *ArticleController) jsonError(i int, s string) {

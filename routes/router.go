@@ -54,6 +54,15 @@ func SetupRoutes() {
 	// 获取文章列表
 	apiGroup.Register("/article/list", &controllers.ArticleController{}, "get:GetArticleList")
 
+	// 获取文章详情
+	apiGroup.Register("/article/:id", &controllers.ArticleController{}, "get:GetArticleDetail")
+
+	// 更新文章
+	apiGroup.Register("/article/:id", &controllers.ArticleController{}, "put:UpdateArticle")
+
+	// 删除文章
+	apiGroup.Register("/article/:id", &controllers.ArticleController{}, "delete:DeleteArticle")
+
 	// 预留其他路由组
 	// adminGroup := NewRouterGroup("/admin")
 	// adminGroup.Register("/users", &controllers.AdminController{}, "get:List;post:Create")
